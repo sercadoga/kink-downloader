@@ -5,7 +5,7 @@ import cloudscraper
 from bs4 import BeautifulSoup
 from requests.cookies import RequestsCookieJar
 
-from src.url_manager import UrlManager
+from src.utility.url_manager import UrlManager
 
 
 class Shoot(UrlManager):
@@ -18,7 +18,12 @@ class Shoot(UrlManager):
     ) -> None:
         super().__init__(UrlManager.HttpType.HTTPS, 'www.kink.com')
 
+        self.title = None
         self.number = None
+        self.videos = None
+        self.poster = None
+        self.zip_image = None
+
         if href and number:
             raise Exception("you cannot specify both href and number, choose only one!")
 
@@ -30,6 +35,7 @@ class Shoot(UrlManager):
         if not cookie:
             raise Exception("cookie must be provided!")
         self.cookie = cookie
+        self.get_data_from_soup()
 
     def set_number(self, number: str | int):
         if isinstance(number, int):
@@ -45,8 +51,20 @@ class Shoot(UrlManager):
         if not match:
             raise Exception("href is invalid! must be in format /shoot/[shoot number]")
         self.segments = [s for s in href.split('/') if s]
+        self.number = self.segments[-1]
 
     def get_data_from_soup(self):
         session = cloudscraper.CloudScraper()
         req = session.get(self.get_url(), cookies=self.cookie)
         soup = BeautifulSoup(req.text, "html.parser")
+        self.title = soup.find('h1', 'shoot-title').get_text()
+        self.videos = {val.get('quality'): val.get('download') for val in
+                       soup.find_all('a', download=True, quality=True)}
+        self.poster = soup.find('video', poster=True).get('poster')
+        self.zip_image = soup.find('a', 'zip-links', download=True).get('download')
+        # todo actors
+
+    def __str__(self) -> str:
+        return f'<Shoot: {self.get_url()}>'
+
+    __repr__ = __str__
