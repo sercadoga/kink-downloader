@@ -11,6 +11,7 @@ from src.files.poster import Poster
 from src.files.video import Video
 from src.files.zip_file import ZipFile
 from src.utility.url_manager import UrlManager
+from src.website.model import Model
 
 
 class Shoot(UrlManager):
@@ -24,16 +25,22 @@ class Shoot(UrlManager):
     ) -> None:
         super().__init__(UrlManager.HttpType.HTTPS, 'www.kink.com')
 
-        self.best_metadata = None
         self.session = None
         self.soup = None
-        self.title = None
-        self.number = None
-        self.videos: list[Video] | None = None
-        self.best_video: Video | None = None
-        self.best_poster = None
-        self.zip_image = None
         self.path = path
+
+        # internal value
+        self.number: str | None = None
+        self.title: str | None = None
+        self.description: str | None = None
+        self.videos: list[Video] | None = None
+        self.poster: Poster | None = None
+        self.zip_image: ZipFile | None = None
+        self.actors: list[Model] | None = None
+        self.tags: list[str] | None = None
+        self.director: str | None = None
+        self.channel: str | None = None
+        self.release_date: str | None = None
 
         if not os.path.exists(self.path):
             raise FileNotFoundError(f'directory {self.path} does not exist')
@@ -52,6 +59,10 @@ class Shoot(UrlManager):
         self.get_data_from_soup()
 
         print(f"shoot: {self.__str__()}")
+
+    @property
+    def best_video(self) -> Video:
+        return max((v for v in self.videos), key=lambda v: int(v.quality))
 
     def set_number(self, number: str | int):
         if isinstance(number, int):
@@ -76,8 +87,7 @@ class Shoot(UrlManager):
         self.title = self.soup.find('h1', 'shoot-title').get_text().replace('\n\ue800\n', '')
         self.videos = [Video(val.get('download'), self.number, val.get('quality'), self.path)
                        for val in self.soup.find_all('a', download=True, quality=True)]
-        self.best_video = max((v for v in self.videos), key=lambda v: int(v.quality))
-        self.best_poster = Poster(
+        self.poster = Poster(
             self.soup.find('video', poster=True).get('poster'),
             self.number,
             self.best_video.quality, self.path
@@ -88,7 +98,6 @@ class Shoot(UrlManager):
             self.best_video.quality, self.path
         )
 
-        self.best_metadata = self.get_metadata()
         # todo actors
 
     def __str__(self) -> str:
@@ -96,55 +105,18 @@ class Shoot(UrlManager):
 
     __repr__ = __str__
 
-    def get_metadata(self):
-        """
-        Parse src for shoot metadata.
-        """
-        title = self.soup.find("h1", "shoot-title").get_text(strip=True)[:-1]
-
-        desc = self.soup.find("span", "description-text")
-        desc = desc.find("p")
-        if desc is None:
-            desc = "No Desription Available"
-        else:
-            desc = desc.get_text()
-
-        shoot_date = self.soup.find("span", "shoot-date")
-        shoot_date = datetime.strptime(shoot_date.get_text(), '%B %d, %Y')
-        shoot_date = shoot_date.strftime("%Y-%m-%d")
-
-        actors = []
-        genres = []
-        actor_thumbs = []
-
-        for actors_tag in self.soup.find_all("span", "names h5"):
-            for bio in actors_tag.find_all("a"):
-                name = bio.get_text().replace(',', '').strip()
-                actors.append(name)
-                bio_url = "https://www.kink.com" + bio.attrs['href']
-                bio_page = BeautifulSoup(self.session.get(bio_url).text, "html.parser")
-
-                if bio_page.find("img", "bio-slider-img") is None:
-                    if bio_page.find("img", "bio-img") is None:
-                        img = "https://cdnp.kink.com/imagedb/43869/i/h/410/16.jpg"
-                    else:
-                        img = bio_page.find("img", "bio-img").attrs['src']
-                else:
-                    img = bio_page.find("img", "bio-slider-img").attrs['src']
-                actor_thumbs.append(img)
-
-        for tag in self.soup.find_all("a", "tag"):
-            g = tag.get_text().replace(',', '').strip()
-            genres.append(g)
-
-        metadata = {"title": title,
-                    "description": desc,
-                    "releasedate": shoot_date,
-                    "genres": genres,
-                    "actors": actors,
-                    "actor_thumbs": actor_thumbs}
-        return metadata
-
     def download_best(self):
         self.best_video.download()
-        self.best_poster.download()
+        self.poster.download()
+
+    def get_data_for_datatable(self):
+        video = self.best_video
+        return {
+            'number': self.number,
+            'title': self.title,
+            'description': self.description,
+            'quality': video.quality,
+            'video': video.url,
+            'poster': self.poster,
+            'zip_image': self.zip_image,
+        }
