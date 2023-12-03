@@ -21,6 +21,11 @@ class DowloadManager:
 
     __repr__ = __str__
 
+    def export_data(self):
+        return {
+            'url': self.url,
+        }
+
     def download(self):
         if not os.path.exists(self._dir_path):
             os.mkdir(self._dir_path)
@@ -30,13 +35,13 @@ class DowloadManager:
                 total = int(response.headers["Content-Length"])
                 if os.path.exists(file_path) and os.path.getsize(file_path) == total:
                     print(f"File {self.get_filename()} already downloaded")
-                # with rich.progress.Progress(
-                #         "[progress.percentage]{task.percentage:>3.0f}%",
-                #         rich.progress.BarColumn(bar_width=None),
-                #         rich.progress.DownloadColumn(),
-                #         rich.progress.TransferSpeedColumn(),
-                # ) as progress:
-                #     download_task = progress.add_task("Download", total=total)
-                #     for chunk in response.iter_bytes():
-                #         download_file.write(chunk)
-                #         progress.update(download_task, completed=response.num_bytes_downloaded)
+                with rich.progress.Progress(
+                        "[progress.percentage]{task.percentage:>3.0f}%",
+                        rich.progress.BarColumn(bar_width=None),
+                        rich.progress.DownloadColumn(),
+                        rich.progress.TransferSpeedColumn(),
+                ) as progress:
+                    download_task = progress.add_task("Download", total=total)
+                    for chunk in response.iter_bytes():
+                        download_file.write(chunk)
+                        progress.update(download_task, completed=response.num_bytes_downloaded)
