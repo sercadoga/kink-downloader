@@ -1,7 +1,7 @@
-from src.utility.dowload_manager import DowloadManager
+from src.utility.dowload_manager import DownloadManager
 
 
-class ZipFile(DowloadManager):
+class ZipFile(DownloadManager):
 
     def get_filename(self) -> str:
         return f'{self.number}.zip'
