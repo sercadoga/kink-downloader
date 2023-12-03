@@ -1,7 +1,7 @@
-from src.utility.dowload_manager import DowloadManager
+from src.utility.dowload_manager import DownloadManager
 
 
-class Poster(DowloadManager):
+class Poster(DownloadManager):
 
     def get_filename(self) -> str:
         return f'poster.jpg'

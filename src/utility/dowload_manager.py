@@ -4,7 +4,7 @@ import httpx
 import rich.progress
 
 
-class DowloadManager:
+class DownloadManager:
 
     def __init__(self, url: str, number: int | str, quality: str = None, path: str = None) -> None:
         self.url = url
@@ -24,13 +24,16 @@ class DowloadManager:
     def export_data(self):
         return {
             'url': self.url,
+            'quality': self.quality,
+            'number': self.number,
+            'path': self.path,
         }
 
     def download(self):
         if not os.path.exists(self._dir_path):
             os.mkdir(self._dir_path)
         file_path = os.path.join(self._dir_path, self.get_filename())
-        with open(file_path,'wb') as download_file:
+        with open(file_path, 'wb') as download_file:
             with httpx.stream("GET", self.url) as response:
                 total = int(response.headers["Content-Length"])
                 if os.path.exists(file_path) and os.path.getsize(file_path) == total:

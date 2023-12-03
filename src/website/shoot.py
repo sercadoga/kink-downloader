@@ -195,12 +195,33 @@ class Shoot(UrlManager):
             'number': self.number,
             'title': self.title,
             'description': self.description,
-            'videos': [vid.get_data() for vid in self.videos],
+            'videos': [vid.export_data() for vid in self.videos],
             'poster': self.poster.export_data() if self.poster else None,
             'zip_image': self.zip_image,
-            'models': [vid.get_data() for vid in self.models],
+            'models': [mod.export_data() for mod in self.models],
             'tags': self.tags,
             # 'director': self.director.export_data(),
             'channel': self.channel,
             'release_date': self.release_date,
         }
+
+    def import_data(self, data):
+        self.number = data.get('number')
+        self.title = data.get('title')
+        self.description = data.get('description')
+
+        if 'videos' in data and data['videos']:
+            self.videos = [Video(**vid) for vid in data['videos']]
+
+        if 'poster' in data and data['poster']:
+            self.poster = Poster(**data)
+
+        self.zip_image = ZipFile(**data.get('zip_image'))
+
+        if 'models' in data and data['models']:
+            self.models = [Model(**mod) for mod in data['models']]
+
+        self.tags = data.get('tags')
+        # self.director = Director().import_data(data['director'])
+        self.channel = data.get('channel')
+        self.release_date = data.get('release_date')

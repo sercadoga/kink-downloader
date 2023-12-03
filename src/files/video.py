@@ -1,7 +1,7 @@
-from src.utility.dowload_manager import DowloadManager
+from src.utility.dowload_manager import DownloadManager
 
 
-class Video(DowloadManager):
+class Video(DownloadManager):
 
     def get_filename(self) -> str:
         return f'{self.number} - {self.quality}p.mp4'
@@ -9,6 +9,3 @@ class Video(DowloadManager):
         return f'<Video: {self.get_filename()}>'
 
     __repr__ = __str__
-
-    def export_data(self):
-        return f'<Video: {self.get_filename()}>'
