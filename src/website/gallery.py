@@ -17,12 +17,13 @@ class Gallery(UrlManager):
     Work only on favorite
     """
 
-    def __init__(self, href: str | list[str], cookie, session):
+    def __init__(self, href: str | list[str], cookie, session, download_now =False):
         super().__init__(UrlManager.HttpType.HTTPS, 'www.kink.com', segments=href)
         self.pages_number = 0
         self.cookie = cookie
         self.soup = None
         self.session = session
+        self.download_now = download_now
         self.name: str | None = None
         self.shoots: list[Shoot] | None = []
         from src.utility.factory import Factory
@@ -43,7 +44,7 @@ class Gallery(UrlManager):
             print(f'page: {page}')
             self.set_page(str(page))
             self.set_soup()
-            shots = [self.factory.get_shoot(el.get('href')) for el in
+            shots = [self.factory.get_shoot(el.get('href'),self.download_now) for el in
                      self.soup.select('div.col-sm-6 > div:nth-child(1) > div:nth-child(2) > a')]
             self.shoots = [*self.shoots, *shots]
             end_time = time.time()

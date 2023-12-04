@@ -18,13 +18,13 @@ def main():
         factory = Factory(path=path, cookie=cookie, session=session)
 
         start_time = time.time()
-        gallery = factory.get_gallery('my/favorite-scenes')
+        gallery = factory.get_gallery('my/favorite-scenes', download_now=True)
         end_time = time.time()
         print(
             f"Execution time for get_gallery: {round((end_time - start_time) // 60)}mm  {round((end_time - start_time) % 60, 2)}ss"
         )
 
-        gallery.download()
+        # gallery.download()
     except KeyboardInterrupt:
         print('By :)')
 

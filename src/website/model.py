@@ -18,6 +18,7 @@ class Model(UrlManager):
         self.description: str | None = None
         self.tag: list[str] | None = None
         self.poster: Poster | None = None
+        self.get_data()
 
     def get_data(self):
         req = self.session.get(self.get_url(), cookies=self.cookie)

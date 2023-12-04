@@ -1,8 +1,6 @@
 from typing import TYPE_CHECKING
 
 
-
-
 class Factory:
     singleton = None
 
@@ -20,13 +18,13 @@ class Factory:
 
         return cls.singleton
 
-    def get_gallery(self, href):
+    def get_gallery(self, href, download_now):
         from src.website.gallery import Gallery
-        return Gallery(href=href, cookie=self.cookie, session=self.session)
+        return Gallery(href=href, download_now=download_now, cookie=self.cookie, session=self.session)
 
-    def get_shoot(self, href):
+    def get_shoot(self, href, download_now):
         from src.website.shoot import Shoot
-        return Shoot(href=href, path=self.path, cookie=self.cookie, session=self.session)
+        return Shoot(href=href, download_now=download_now, path=self.path, cookie=self.cookie, session=self.session)
 
     def get_model(self, href):
         if model := self._model_cache.get(href):

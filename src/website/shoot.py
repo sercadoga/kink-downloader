@@ -15,6 +15,7 @@ from src.utility.url_manager import UrlManager
 from src.website.model import Model
 from src.utility.factory import Factory
 
+
 class Shoot(UrlManager):
     def __init__(
             self,
@@ -23,13 +24,14 @@ class Shoot(UrlManager):
             path: str | None = None,
             cookie: MozillaCookieJar | RequestsCookieJar = None,
             session: cloudscraper.CloudScraper | None = None,
+            download_now=False
     ) -> None:
         super().__init__(UrlManager.HttpType.HTTPS, 'www.kink.com')
         self.factory = Factory(path, cookie, session)
         self.session = session
         self.soup = None
         self.path = path
-
+        self.download_now = download_now
         # internal value
         self.number: str | None = None
         self.title: str | None = None
@@ -57,8 +59,10 @@ class Shoot(UrlManager):
             raise Exception("cookie must be provided!")
         self.cookie = cookie
         self.get_data_from_soup()
-
-        print(f"shoot: {self.__str__()}")
+        if not download_now:
+            print(f"shoot: {self.__str__()}")
+        else:
+            self.download_best()
 
     @property
     def best_video(self) -> Video:
@@ -123,9 +127,9 @@ class Shoot(UrlManager):
         os.makedirs(self.dir_path, exist_ok=True)
         print(f'Downloading {str(self)}')
         self.write_metadata_nfo(self.dir_path)
-        # self.best_video.download()
-        # self.poster.download()
-        # self.zip_image.download()
+        self.best_video.download()
+        self.poster.download()
+        self.zip_image.download()
 
     def get_data_for_datatable(self):
         video = self.best_video
@@ -143,8 +147,7 @@ class Shoot(UrlManager):
         """
         Write metadata to emby compatible NFO file.
         """
-        global shot_dir, shot_number
-        fname = os.path.join(shot_dir, shot_number + ".nfo")
+        fname = os.path.join(self.dir_path, "movie.nfo")
         with open(fname, "w") as nfo:
             nfo.write('<?xml version="1.0" encoding="utf-8" standalone="yes"?>\n')
             nfo.write("<movie>\n")
@@ -164,7 +167,7 @@ class Shoot(UrlManager):
                 # nfo.write("    <thumb>" + self.escape(metadata['actor_thumbs'][i]) +
                 #           "</thumb>\n")
                 nfo.write("  </actor>\n")
-        nfo.write("</movie>\n")
+            nfo.write("</movie>\n")
 
     def escape(self, data, entities={}) -> str:
         """Escape &, <, and > in a string of data.

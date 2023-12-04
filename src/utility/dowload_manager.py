@@ -33,6 +33,7 @@ class DownloadManager:
         if not os.path.exists(self._dir_path):
             os.mkdir(self._dir_path)
         file_path = os.path.join(self._dir_path, self.get_filename())
+        print(f"filename: {file_path}")
         with open(file_path, 'wb') as download_file:
             with httpx.stream("GET", self.url) as response:
                 total = int(response.headers["Content-Length"])
