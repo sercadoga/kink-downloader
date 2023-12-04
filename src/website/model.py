@@ -20,8 +20,6 @@ class Model(UrlManager):
         self.poster: Poster | None = None
 
     def get_data(self):
-        if not self.session:
-            self.session = cloudscraper.CloudScraper()
         req = self.session.get(self.get_url(), cookies=self.cookie)
         self.soup = BeautifulSoup(req.text, "html.parser")
         self.name = self.soup.select('.page-title')[0].get_text().split('\n')[0].strip()

@@ -1,9 +1,11 @@
+import time
 from typing import TYPE_CHECKING
 
 import cloudscraper
 from bs4 import BeautifulSoup
 
 from src.files.poster import Poster
+
 if TYPE_CHECKING:
     from src.utility.factory import Factory
 from src.utility.url_manager import UrlManager
@@ -35,14 +37,18 @@ class Gallery(UrlManager):
         req = self.session.get(self.get_url(), cookies=self.cookie)
         self.soup = BeautifulSoup(req.text, "html.parser")
 
-    def get_shoots(self) -> list[Shoot]:
+    def get_shoots(self):
         for page in range(1, self.pages_number + 1, 1):
+            start_time = time.time()
             print(f'page: {page}')
             self.set_page(str(page))
             self.set_soup()
             shots = [self.factory.get_shoot(el.get('href')) for el in
                      self.soup.select('div.col-sm-6 > div:nth-child(1) > div:nth-child(2) > a')]
             self.shoots = [*self.shoots, *shots]
+            end_time = time.time()
+            print(f"Time for this page: {round((end_time - start_time) // 60)}mm  {round((end_time - start_time) % 60, 2)}ss")
+            print("============================================================================")
 
     def get_page_number(self):
         last_page_of_favorites_fav = self.soup.select('li.page-item:last-child > a:nth-child(1)')
@@ -58,5 +64,6 @@ class Gallery(UrlManager):
 
     def download(self):
         print(f'Downloading {self.get_url()} gallery...')
+        shot: Shoot
         for shot in self.shoots:
-            shot.download()
+            shot.download_best()

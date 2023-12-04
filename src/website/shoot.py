@@ -13,7 +13,7 @@ from src.files.video import Video
 from src.files.zip_file import ZipFile
 from src.utility.url_manager import UrlManager
 from src.website.model import Model
-
+from src.utility.factory import Factory
 
 class Shoot(UrlManager):
     def __init__(
@@ -25,7 +25,6 @@ class Shoot(UrlManager):
             session: cloudscraper.CloudScraper | None = None,
     ) -> None:
         super().__init__(UrlManager.HttpType.HTTPS, 'www.kink.com')
-        from src.utility.factory import Factory
         self.factory = Factory(path, cookie, session)
         self.session = session
         self.soup = None
@@ -85,7 +84,6 @@ class Shoot(UrlManager):
         if os.path.exists(os.path.join(self.dir_path, 'data.json')):
             self.load_from_json()
 
-        self.session = cloudscraper.CloudScraper()
         req = self.session.get(self.get_url(), cookies=self.cookie)
         self.soup = BeautifulSoup(req.text, "html.parser")
         self.title = self.soup.find('h1', 'shoot-title').get_text().replace('\n\ue800\n', '')
